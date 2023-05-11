@@ -16,6 +16,7 @@ color_codes = {
     "silver": (None, 10),
 }
 
+
 def calculate_resistance():
     band1_color = band1_combobox.get()
     band2_color = band2_combobox.get()
@@ -24,21 +25,30 @@ def calculate_resistance():
 
     notation = notation_combobox.get()
 
-    resistance = (color_codes[band1_color][0] * 10 + color_codes[band2_color][0]) * 10 ** color_codes[band3_color][0]
+    if notation == "4-band":
+        if band1_color == '' or band2_color == '' or band3_color == '' or band4_color == '':
+            resistance_label.config(text="Resistance: N/A")
+            tolerance_label.config(text="Tolerance: N/A")
+            return
 
-    if notation == "5-band":
-        band5_color = band5_combobox.get()
-        resistance = resistance * 10 + color_codes[band5_color][0]
-
-    tolerance = ""
-    if color_codes[band4_color][1] is not None:
+        resistance = (color_codes[band1_color][0] * 10 + color_codes[band2_color][0]) * 10 ** color_codes[band3_color][
+            0]
         tolerance = str(color_codes[band4_color][1]) + "%"
+    elif notation == "5-band":
+        band5_color = band5_combobox.get()
 
-    if notation == "5-band" and color_codes[band5_color][1] is not None:
+        if band1_color == '' or band2_color == '' or band3_color == '' or band4_color == '' or band5_color == '':
+            resistance_label.config(text="Resistance: N/A")
+            tolerance_label.config(text="Tolerance: N/A")
+            return
+
+        resistance = (color_codes[band1_color][0] * 100 + color_codes[band2_color][0] * 10 + color_codes[band3_color][
+            0]) * 10 ** color_codes[band4_color][0]
         tolerance = str(color_codes[band5_color][1]) + "%"
 
-    resistance_label.config(text=f"Resistance: {resistance} Ω")
+    resistance_label.config(text=f"Resistance: {resistance:.2f} Ω")
     tolerance_label.config(text=f"Tolerance: {tolerance}")
+
 
 root = tk.Tk()
 root.title("Resistor Calculator")
@@ -89,6 +99,7 @@ resistance_label.grid(row=7, columnspan=2, padx=10, pady=5)
 tolerance_label = ttk.Label(root, text="Tolerance:")
 tolerance_label.grid(row=8, columnspan=2, padx=10, pady=5)
 
+
 def handle_notation_selection(event):
     selected_option = notation_combobox.get()
     if selected_option == "5-band":
@@ -98,7 +109,7 @@ def handle_notation_selection(event):
         band5_label.grid_remove()
         band5_combobox.grid_remove()
 
+
 notation_combobox.bind("<<ComboboxSelected>>", handle_notation_selection)
 
 root.mainloop()
-
