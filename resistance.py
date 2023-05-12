@@ -52,13 +52,25 @@ def calculate_resistance():
 
 root = tk.Tk()
 root.title("Resistor Calculator")
+root.geometry(f"310x420")
+
+logo_file = "icon.png"
+if os.path.exists(logo_file):
+    logo = PhotoImage(file=logo_file)
+    root.wm_iconphoto(True, logo)
+
+# Style
+## Define font size
+fnt_size = 16
+style = ttk.Style(root)
+style.configure('.', font=('Arial', fnt_size))
 
 notation_label = ttk.Label(root, text="Notation:")
-notation_label.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
+notation_label.grid(row=0, column=0, padx=10, pady=40, sticky=tk.W)
 
 notation_combobox = ttk.Combobox(root, values=["4-band", "5-band"])
 notation_combobox.current(1)
-notation_combobox.grid(row=0, column=1, padx=10, pady=5)
+notation_combobox.grid(row=0, column=1, padx=10, pady=40)
 
 band1_label = ttk.Label(root, text="Band 1:")
 band1_label.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W)
