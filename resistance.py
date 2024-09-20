@@ -2,7 +2,9 @@ import os
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk
+from tkinter import messagebox
 
+# Color codes dictionary
 color_codes = {
     "black": (0, None),
     "brown": (1, 1),
@@ -18,143 +20,170 @@ color_codes = {
     "silver": (None, 10),
 }
 
+
+# Font initialization for labels
+def initialize_font(size=16):
+    return tkFont.Font(family='Times', size=size)
+
+
+# Helper function to format resistance values
+def format_resistance(value):
+    if value >= 1e6:
+        return f"{value / 1e6:.2f} MΩ"
+    elif value >= 1e3:
+        return f"{value / 1e3:.2f} kΩ"
+    else:
+        return f"{value:.2f} Ω"
+
+
+# Resistance calculation function
 def calculate_resistance():
     band1_color = band1_combobox.get()
     band2_color = band2_combobox.get()
     band3_color = band3_combobox.get()
     band4_color = band4_combobox.get()
-
     notation = notation_combobox.get()
 
-    resistance = 0  # Initialize with a default value
-
     if notation == "4 Bands":
-        if band1_color == '' or band2_color == '' or band3_color == '' or band4_color == '':
+        if not all([band1_color, band2_color, band3_color, band4_color]):
             resistance_label.config(text="Resistance: N/A")
             tolerance_label.config(text="Tolerance: N/A")
+            resistance_range_label.config(text="")
             return
 
         resistance = (color_codes[band1_color][0] * 10 + color_codes[band2_color][0]) * 10 ** color_codes[band3_color][
             0]
-        tolerance = str(color_codes[band4_color][1]) + "%"
+        tolerance = color_codes[band4_color][1]
     elif notation == "5 Bands":
         band5_color = band5_combobox.get()
 
-        if band1_color == '' or band2_color == '' or band3_color == '' or band4_color == '' or band5_color == '':
+        if not all([band1_color, band2_color, band3_color, band4_color, band5_color]):
             resistance_label.config(text="Resistance: N/A")
             tolerance_label.config(text="Tolerance: N/A")
+            resistance_range_label.config(text="")
             return
 
         resistance = (color_codes[band1_color][0] * 100 + color_codes[band2_color][0] * 10 + color_codes[band3_color][
             0]) * 10 ** color_codes[band4_color][0]
-        tolerance = str(color_codes[band5_color][1]) + "%"
+        tolerance = color_codes[band5_color][1]
 
-    resistance_label.config(text=f"Resistance: {resistance:.2f} Ω")
-    tolerance_label.config(text=f"Tolerance: {tolerance}")
+    # Display resistance and tolerance
+    formatted_resistance = format_resistance(resistance)
+    resistance_label.config(text=f"Resistance: {formatted_resistance}")
+    tolerance_label.config(text=f"Tolerance: ±{tolerance}%")
 
+    # Calculate the potential resistance range
+    min_resistance = resistance * (1 - tolerance / 100)
+    max_resistance = resistance * (1 + tolerance / 100)
+
+    # Display resistance range
+    resistance_range_label.config(
+        text=f"Resistance Range: {format_resistance(min_resistance)} - {format_resistance(max_resistance)}"
+    )
+
+
+# Menu bar functions
+def show_help():
+    help_text = (
+        "Resistor Calculator Usage:\n\n"
+        "1. Select the number of bands on your resistor (4 or 5).\n"
+        "2. For each band, select the corresponding color from the dropdown menus.\n"
+        "   - Band 1: First significant figure.\n"
+        "   - Band 2: Second significant figure.\n"
+        "   - Band 3 (only for 5-band resistors): Third significant figure.\n"
+        "   - Band 4: Multiplier.\n"
+        "   - Band 5: Tolerance (if 5 bands).\n"
+        "3. Press the 'Calculate' button to view the resistance and tolerance.\n\n"
+        "How to Determine the First Color Band:\n"
+        "- The first band is typically located closer to one end of the resistor.\n"
+        "- The tolerance band (gold, silver, or none) is usually separated by more space from the other bands and is often positioned on the far right.\n"
+        "- Hold the resistor so that the tolerance band is on the right. The first color band will be on the far left.\n"
+        "- For resistors with 5 bands, the first three bands represent significant figures, and the last two are the multiplier and tolerance.\n\n"
+    )
+    messagebox.showinfo("Help - Resistor Calculator", help_text)
+
+
+def show_about():
+    about_text = (
+        "Resistor Calculator v2.012\n\n"
+        "Developed by Kaotick Jay\n"
+        "GitHub: https://github.com/kaotickj\n"
+        "Website: https://kdgwebsolutions.com\n"
+    )
+    messagebox.showinfo("About", about_text)
+
+
+# Initialize tkinter root
 root = tk.Tk()
-# setting window size
-width = 600
-height = 500
-screenwidth = root.winfo_screenwidth()
-screenheight = root.winfo_screenheight()
-alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
+width, height = 600, 550
+screenwidth, screenheight = root.winfo_screenwidth(), root.winfo_screenheight()
+alignstr = f'{width}x{height}+{(screenwidth - width) // 2}+{(screenheight - height) // 2}'
 root.geometry(alignstr)
-
 root.title("Resistor Calculator")
 root.resizable(width=False, height=False)
 
+# Menu bar creation
+menu_bar = tk.Menu(root)
+root.config(menu=menu_bar)
+
+help_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Help", menu=help_menu)
+help_menu.add_command(label="Usage Instructions", command=show_help)
+
+about_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="About", menu=about_menu)
+about_menu.add_command(label="About this program", command=show_about)
+
+# Combobox for notation selection (4 or 5 bands)
 notation_combobox = ttk.Combobox(root, values=["4 Bands", "5 Bands"])
-notation_combobox.current(1)
+notation_combobox.current(0)
 notation_combobox.place(x=310, y=60, width=170, height=32)
 
-notation_label=tk.Label(root)
-ft = tkFont.Font(family='Times',size=16)
-notation_label["font"] = ft
-notation_label["fg"] = "#333333"
-notation_label["justify"] = "center"
-notation_label["text"] = "Number of Bands: "
-notation_label.place(x=100,y=60,width=163,height=36)
+notation_label = tk.Label(root, text="Number of Bands:", font=initialize_font(16), fg="#333333", justify="center")
+notation_label.place(x=100, y=60, width=163, height=36)
 
-band1_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=16)
-band1_label["font"] = ft
-band1_label["fg"] = "#333333"
-band1_label["justify"] = "center"
-band1_label["text"] = "Band 1"
-band1_label.place(x=110, y=140, width=158, height=32)
+# Labels and comboboxes for each band
+band_labels = ["Band 1", "Band 2", "Band 3", "Band 4", "Band 5"]
+band_comboboxes = {}
 
-band2_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=16)
-band2_label["font"] = ft
-band2_label["fg"] = "#333333"
-band2_label["justify"] = "center"
-band2_label["text"] = "Band 2"
-band2_label.place(x=110, y=190, width=158, height=32)
+for i, band in enumerate(band_labels[:4]):  # Only set up the first 4 bands by default
+    label = tk.Label(root, text=band, font=initialize_font(16), fg="#333333", justify="center")
+    label.place(x=110, y=140 + 50 * i, width=158, height=32)
 
-band3_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=16)
-band3_label["font"] = ft
-band3_label["fg"] = "#333333"
-band3_label["justify"] = "center"
-band3_label["text"] = "Band 3"
-band3_label.place(x=110, y=240, width=158, height=32)
+    combobox = ttk.Combobox(root, values=list(color_codes.keys()))
+    combobox.place(x=310, y=140 + 50 * i, width=170, height=32)
+    band_comboboxes[band] = combobox
 
-band4_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=16)
-band4_label["font"] = ft
-band4_label["fg"] = "#333333"
-band4_label["justify"] = "center"
-band4_label["text"] = "Band 4"
-band4_label.place(x=110, y=290, width=158, height=32)
+# Reference to each combobox
+band1_combobox = band_comboboxes["Band 1"]
+band2_combobox = band_comboboxes["Band 2"]
+band3_combobox = band_comboboxes["Band 3"]
+band4_combobox = band_comboboxes["Band 4"]
 
-band5_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=16)
-band5_label["font"] = ft
-band5_label["fg"] = "#333333"
-band5_label["justify"] = "center"
-band5_label["text"] = "Band 5"
-band5_label.place(x=110, y=340, width=158, height=32)
+# Band 5 components (hidden on startup)
+band5_label = tk.Label(root, text="Band 5", font=initialize_font(16), fg="#333333", justify="center")
+band5_combobox = ttk.Combobox(root, values=list(color_codes.keys()))
 
-resistance_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=14)
-resistance_label["font"] = ft
-resistance_label["fg"] = "#333333"
-resistance_label["justify"] = "center"
-resistance_label["text"] = "Resistance:"
+# Label for displaying resistance
+resistance_label = tk.Label(root, text="Resistance:", font=initialize_font(14), fg="#333333", justify="center")
 resistance_label.place(x=80, y=410, width=320, height=32)
 
-tolerance_label = tk.Label(root)
-ft = tkFont.Font(family='Times', size=14)
-tolerance_label["font"] = ft
-tolerance_label["fg"] = "#333333"
-tolerance_label["justify"] = "center"
-tolerance_label["text"] = "Tolerance:"
+# Label for displaying tolerance
+tolerance_label = tk.Label(root, text="Tolerance:", font=initialize_font(14), fg="#333333", justify="center")
 tolerance_label.place(x=360, y=410, width=180, height=30)
 
-band1_combobox = ttk.Combobox(root, values=list(color_codes.keys()))
-band1_combobox.place(x=310, y=140, width=170, height=32)
+# New label for showing the resistance range, centered in the main window
+resistance_range_label = tk.Label(root, text="", font=("Arial", 12), justify="center")
+resistance_range_label.place(x=150, y=450, width=300, height=32)
 
-band2_combobox = ttk.Combobox(root, values=list(color_codes.keys()))
-band2_combobox.place(x=310, y=190, width=170, height=32)
-
-band3_combobox = ttk.Combobox(root, values=list(color_codes.keys()))
-band3_combobox.place(x=310, y=240, width=170, height=32)
-
-band4_combobox = ttk.Combobox(root, values=list(color_codes.keys()))
-band4_combobox.place(x=310, y=290, width=170, height=32)
-
-band5_combobox = ttk.Combobox(root, values=list(color_codes.keys()))
-band5_combobox.place(x=310, y=340, width=170, height=32)
-
+# Button for triggering the calculation
 calculate_button = ttk.Button(root, text="Calculate", command=calculate_resistance)
-calculate_button["text"] = "Calculate"
-calculate_button.place(x=270, y=460, width=100, height=32)
+calculate_button.place(x=270, y=490, width=100, height=30)
 
 
-def handle_notation_selection(event):
-    selected_option = notation_combobox.get()
-    if selected_option == "5 Bands":
+# Event listener for combobox change
+def on_notation_change(event):
+    if notation_combobox.get() == "5 Bands":
         band5_label.place(x=110, y=340, width=158, height=32)
         band5_combobox.place(x=310, y=340, width=170, height=32)
     else:
@@ -162,6 +191,7 @@ def handle_notation_selection(event):
         band5_combobox.place_forget()
 
 
-notation_combobox.bind("<<ComboboxSelected>>", handle_notation_selection)
+notation_combobox.bind("<<ComboboxSelected>>", on_notation_change)
 
+# Run the tkinter main loop
 root.mainloop()
