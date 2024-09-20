@@ -33,16 +33,32 @@ The Resistor Calculator is a GUI application developed in Python using Tkinter. 
    ```
 
 ## Usage Instructions
-1. Launch the application.
-2. Select the number of bands on your resistor (4 or 5) from the dropdown menu.
-3. For each band, select the corresponding color from the dropdown menus.
-   - **Band 1**: First significant figure.
-   - **Band 2**: Second significant figure.
-   - **Band 3** (only for 5-band resistors): Third significant figure.
-   - **Band 4**: Multiplier.
-   - **Band 5**: Tolerance (if 5 bands).
-4. Press the "Calculate" button to view the resistance and tolerance.
-5. The resistance range will also be displayed based on the tolerance value.
+
+1. Select the number of bands on your resistor (4 or 5).
+
+   ### For 4-Band Resistors:
+   2. Select the corresponding color for each band from the dropdown menus:
+      - Band 1: First significant figure.
+      - Band 2: Second significant figure.
+      - Band 3: Multiplier.
+      - Band 4: Tolerance.
+
+   ### For 5-Band Resistors:
+   2. Select the corresponding color for each band from the dropdown menus:
+      - Band 1: First significant figure.
+      - Band 2: Second significant figure.
+      - Band 3: Third significant figure.
+      - Band 4: Multiplier.
+      - Band 5: Tolerance.
+
+3. Press the "Calculate" button to view the resistance and tolerance.
+
+## How to Determine the First Color Band
+
+- The first band is typically located closer to one end of the resistor.
+- The tolerance band (gold, silver, or none) is usually separated by more space from the other bands and is often positioned on the far right.
+- Hold the resistor so that the tolerance band is on the right. The first color band will be on the far left.
+- For resistors with 5 bands, the first three bands represent significant figures, while the last two are the multiplier and tolerance.
 
 ## Use Case Information
 This application is ideal for electronics enthusiasts, students, and professionals who need to quickly and accurately calculate the resistance of resistors based on their color codes. It can be particularly useful in educational settings for learning about resistor color codes and tolerance values.

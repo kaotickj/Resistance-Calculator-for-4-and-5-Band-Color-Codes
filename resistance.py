@@ -105,19 +105,30 @@ def show_help():
     help_text = (
         "Resistor Calculator Usage:\n\n"
         "1. Select the number of bands on your resistor (4 or 5).\n"
-        "2. For each band, select the corresponding color from the dropdown menus.\n"
+        "\n"
+        "For 4-Band Resistors:\n"
+        "2. Select the corresponding color for each band from the dropdown menus:\n"
         "   - Band 1: First significant figure.\n"
         "   - Band 2: Second significant figure.\n"
-        "   - Band 3 (only for 5-band resistors): Third significant figure.\n"
+        "   - Band 3: Multiplier.\n"
+        "   - Band 4: Tolerance.\n"
+        "\n"
+        "For 5-Band Resistors:\n"
+        "2. Select the corresponding color for each band from the dropdown menus:\n"
+        "   - Band 1: First significant figure.\n"
+        "   - Band 2: Second significant figure.\n"
+        "   - Band 3: Third significant figure.\n"
         "   - Band 4: Multiplier.\n"
-        "   - Band 5: Tolerance (if 5 bands).\n"
+        "   - Band 5: Tolerance.\n"
+        "\n"
         "3. Press the 'Calculate' button to view the resistance and tolerance.\n\n"
         "How to Determine the First Color Band:\n"
         "- The first band is typically located closer to one end of the resistor.\n"
         "- The tolerance band (gold, silver, or none) is usually separated by more space from the other bands and is often positioned on the far right.\n"
         "- Hold the resistor so that the tolerance band is on the right. The first color band will be on the far left.\n"
-        "- For resistors with 5 bands, the first three bands represent significant figures, and the last two are the multiplier and tolerance.\n\n"
+        "- For resistors with 5 bands, the first three bands represent significant figures, while the last two are the multiplier and tolerance.\n\n"
     )
+
     messagebox.showinfo("Help - Resistor Calculator", help_text)
 
 def show_about():
