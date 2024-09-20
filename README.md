@@ -17,6 +17,8 @@ The Resistor Calculator is a GUI application developed in Python using Tkinter. 
 - Tkinter (usually included with Python installations)
 
 ## Installation
+
+### Clone
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/kaotickj/Resistance-Calculator-for-4-and-5-Band-Color-Codes.git
@@ -31,6 +33,31 @@ The Resistor Calculator is a GUI application developed in Python using Tkinter. 
    ```bash
    python resistance.py
    ```
+### Manual Download
+
+1. **Download the Repository:**
+   - Go to the [Resistance-Calculator-for-4-and-5-Band-Color-Codes](https://github.com/kaotickj/Resistance-Calculator-for-4-and-5-Band-Color-Codes) GitHub page.
+   - Click on the "<> Code" button.
+   - Select "Download ZIP" from the dropdown menu.
+   - Save the ZIP file to your preferred location on your computer.
+
+2. **Extract the ZIP File:**
+   - Navigate to the location where you downloaded the ZIP file.
+   - Right-click on the ZIP file and select "Extract All" (or a similar option depending on your operating system).
+   - Choose a destination folder and extract the contents.
+
+3. **Navigate to the Project Directory:**
+   - Open your terminal or command prompt.
+   - Use the `cd` command to navigate to the extracted project directory. For example:
+     ```bash
+     cd path/to/Resistance-Calculator-for-4-and-5-Band-Color-Codes
+     ```
+
+4. **Run the Application:**
+   - Execute the following command to start the application:
+     ```bash
+     python resistance.py
+     ```
 
 ## Usage Instructions
 
