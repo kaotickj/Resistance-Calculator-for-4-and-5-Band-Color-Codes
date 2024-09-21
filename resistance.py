@@ -3,6 +3,8 @@ import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk
 from tkinter import messagebox
+import platform
+
 
 # Color codes dictionary
 color_codes = {
@@ -145,12 +147,23 @@ width, height = 600, 600
 screenwidth, screenheight = root.winfo_screenwidth(), root.winfo_screenheight()
 alignstr = f'{width}x{height}+{(screenwidth - width) // 2}+{(screenheight - height) // 2}'
 root.geometry(alignstr)
-root.title("Ω Resistor Calculator")
+root.title("Resistor Color Code Calculator")
 root.configure(bg="#f0f0f0")
+
+if platform.system() == 'Windows':
+    root.iconphoto(True, tk.PhotoImage(file='icon.png'))
+elif platform.system() == 'Linux':
+    icon_path = 'icon.png'
+    if os.path.exists(icon_path):
+        root.iconphoto(True, tk.PhotoImage(file=icon_path))
+    else:
+        print(f"Icon file not found: {icon_path}")
+
+
 root.resizable(width=False, height=False)
 
 # Top label with colored background
-header_label = tk.Label(root, text="Ω Resistor Color Code Calculator", font='Arial 14 bold', bg="#f0f0f0", fg="blue", padx=10, pady=5)
+header_label = tk.Label(root, text="Ω Resistor Color Code Calculator", font='Arial 16', bg="#f0f0f0", fg="blue", padx=10, pady=5)
 header_label.place(relx=0.5, rely=0.055, anchor='center')
 
 # Menu bar creation
