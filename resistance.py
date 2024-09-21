@@ -150,7 +150,7 @@ root.configure(bg="#f0f0f0")
 root.resizable(width=False, height=False)
 
 # Top label with colored background
-header_label = tk.Label(root, text="Ω Resistor Color Code Calculator", font='Arial 14 bold', fg="blue", padx=10, pady=5)
+header_label = tk.Label(root, text="Ω Resistor Color Code Calculator", font='Arial 14 bold', bg="#f0f0f0", fg="blue", padx=10, pady=5)
 header_label.place(relx=0.5, rely=0.055, anchor='center')
 
 # Menu bar creation
@@ -172,7 +172,7 @@ notation_combobox.place(x=310, y=60, width=170, height=32)
 ToolTip(notation_combobox, "Select the number of bands on your resistor.")
 
 notation_label = tk.Label(root, text="Number of Bands:", font=initialize_font(16), fg="#333333", bg="#f0f0f0")
-notation_label.place(x=100, y=60, width=163, height=36)
+notation_label.place(x=100, y=60, width=170, height=36)
 ToolTip(notation_label, "Number of color bands on the resistor.")
 
 # Labels and comboboxes for each band
@@ -213,7 +213,7 @@ resistance_range_label = tk.Label(root, text="", font=initialize_font(14), fg="b
 resistance_range_label.place(x=110, y=470, width=400, height=32)
 
 # Calculate button
-calculate_button = tk.Button(root, text="Calculate", command=calculate_resistance, font=initialize_font(14), bg="#4CAF50", fg="white")
+calculate_button = tk.Button(root, text="Calculate", command=calculate_resistance, font=initialize_font(14), bg="green", fg="white")
 calculate_button.place(x=230, y=520, width=150, height=36)
 
 # Event handler for updating band comboboxes
