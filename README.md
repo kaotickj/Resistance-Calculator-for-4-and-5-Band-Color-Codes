@@ -40,7 +40,7 @@ The Resistor Calculator is a GUI application developed in Python using the PyQt6
    `python setup.py`
    
    **OR - install with pip**
-   `pip instal -r requirements.txt`
+   `pip install -r requirements.txt`
    
 ### Manual Download
 
