@@ -69,7 +69,7 @@ The Resistor Calculator is a GUI application developed in Python using the PyQt6
      ```bash
      python resistanceCalculator.py
      ```
-	#### or Run the W;ndows executable:
+	#### or Run the Windows executable:
 	`resistamceCalculator.exe`
 ## Usage Instructions
 
