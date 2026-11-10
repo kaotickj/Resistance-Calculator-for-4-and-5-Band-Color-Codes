@@ -1,0 +1,115 @@
+name: Publish verified resistor 3.0.0
+on:
+  push:
+    branches: [release/publish-3.0.0]
+    paths: [.github/workflows/publish-resistor-3.0.0.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-resistor-3.0.0
+  cancel-in-progress: false
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: kaotickj/Resistance-Calculator-for-4-and-5-Band-Color-Codes
+  SOURCE_SHA: 5208168e1d1a7b80bc9b6078557e49857f9e48c4
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Verify successful pinned build runs
+        run: |
+          gh api repos/$GH_REPO/actions/runs/42846469297 > desktop-run.json
+          gh api repos/kaotickj/Python-Music-Player/actions/runs/42846837375 > signing-run.json
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('desktop-run.json')); s=json.load(open('signing-run.json'))
+          assert d['head_sha']==os.environ['SOURCE_SHA'] and d['conclusion']=='success'
+          assert s['head_sha']=='bd48d190bed19a9bae9de22a77b781027cc4f723' and s['conclusion']=='success'
+          PY
+      - name: Download immutable artifact archives
+        run: |
+          gh api repos/$GH_REPO/actions/artifacts/13779400390/zip > windows.zip
+          gh api repos/$GH_REPO/actions/artifacts/13777422786/zip > linux.zip
+          gh api repos/kaotickj/Python-Music-Player/actions/artifacts/13778647093/zip > android.zip
+          printf '%s\n' 'c8d31bab3890a4f53df460cf42f12cb26e32675187f061beaafe73dbf71ae485  windows.zip' '79016fbd452af810a14cf5cbc2900999b3717a29c2cfb522196bc429fb198a2e  linux.zip' 'c8fb0da3bbb034d4d96d6fa35acec7cccd92d2a214c170f37c8e2ade43415c52  android.zip' | sha256sum -c -
+      - name: Verify payloads and provenance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import hashlib,json,os,tarfile,zipfile
+          out=Path('release');out.mkdir()
+          selected={
+            'windows.zip':['ResistorCalculator-3.0.0-windows-x86_64-setup.exe'],
+            'linux.zip':['ResistorCalculator-3.0.0-linux-x86_64-installer.tar.gz'],
+            'android.zip':['Resistor-Color-Code-3.0.0-android-release.apk','BUILD-VERIFICATION.json']
+          }
+          for filename,names in selected.items():
+              with zipfile.ZipFile(filename) as z:
+                  assert z.testzip() is None
+                  for name in names:
+                      assert z.namelist().count(name)==1
+                      (out/name).write_bytes(z.read(name))
+          exe=out/'ResistorCalculator-3.0.0-windows-x86_64-setup.exe'
+          assert exe.read_bytes().startswith(b'MZ') and exe.stat().st_size>100000
+          with tarfile.open(out/'ResistorCalculator-3.0.0-linux-x86_64-installer.tar.gz') as t:
+              for m in t.getmembers():
+                  p=PurePosixPath(m.name)
+                  assert not p.is_absolute() and '..' not in p.parts and not m.issym() and not m.islnk()
+              for name in ['install.sh','install.py','resistanceCalculator.py','LICENSE','requirements.txt']:
+                  assert t.getmember('ResistorCalculator-3.0.0/'+name).isfile()
+          report=json.loads((out/'BUILD-VERIFICATION.json').read_text())
+          apk=out/'Resistor-Color-Code-3.0.0-android-release.apk'
+          assert report['source_commit']==os.environ['SOURCE_SHA']
+          assert report['certificate_sha256']=='6f289ade4d7c49f94390c1a791b880d941ad72a86fda9079f216506dea616794'
+          assert report['apk_sha256']==hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert report['signature_verified'] and report['release_not_debuggable']
+          report['platform_build_run']='https://github.com/'+os.environ['GH_REPO']+'/actions/runs/42846469297'
+          report['desktop_tests_per_platform']=7
+          report['desktop_install_and_uninstall_verified']=True
+          report['desktop_requires']='64-bit Python 3.12 and internet at installation time'
+          (out/'BUILD-VERIFICATION.json').write_text(json.dumps(report,indent=2)+'\n')
+          filenames=selected['windows.zip']+selected['linux.zip']+[apk.name]
+          (out/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256((out/n).read_bytes()).hexdigest()+'  '+n+'\n' for n in sorted(filenames)))
+          PY
+      - name: Verify Android signature independently
+        run: |
+          tools="$ANDROID_HOME/build-tools/35.0.0"
+          if [ ! -x "$tools/apksigner" ]; then "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'build-tools;35.0.0'; fi
+          "$tools/apksigner" verify --verbose --print-certs release/Resistor-Color-Code-3.0.0-android-release.apk > release/APK-SIGNATURE.txt
+          grep -F 'Signer #1 certificate SHA-256 digest: 6f289ade4d7c49f94390c1a791b880d941ad72a86fda9079f216506dea616794' release/APK-SIGNATURE.txt
+          "$tools/zipalign" -c -P 16 4 release/Resistor-Color-Code-3.0.0-android-release.apk
+      - name: Write release notes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          Path('release/RELEASE-NOTES.md').write_text("# Resistor Color Code Calculator 3.0.0\n\nAndroid, Windows and Linux release from development commit 5208168e1d1a7b80bc9b6078557e49857f9e48c4.\n\n## Downloads\n- Resistor-Color-Code-3.0.0-android-release.apk: native offline Android 7.0+ app, production signed using the existing K-Tunes identity.\n- ResistorCalculator-3.0.0-windows-x86_64-setup.exe: per-user Windows source installer.\n- ResistorCalculator-3.0.0-linux-x86_64-installer.tar.gz: per-user Linux source installer.\n- SHA256SUMS.txt: SHA-256 checksums for the three installable downloads.\n\n**Desktop installers require 64-bit Python 3.12 and internet access during installation.** They download pinned PyQt6 dependencies from PyPI into a private virtual environment; these are not standalone/offline binaries. Windows also needs the Python launcher. The Windows installer is unsigned. Linux requires Python's venv support and compatible Qt graphics libraries; Ubuntu 24.04 setup commands are included in the installer README.\n\n## Changes\n- Restored the native Java Android port and modern v3 PyQt6 desktop interface.\n- 4-, 5- and 6-band resistance calculations, tolerance ranges and temperature coefficients.\n- Live resistor preview, Help and About.\n- Desktop scrolling on shorter screens, safe Qt icon handling and PNG fallback.\n- Repeatable platform-specific installer builds and regression tests.\n\n## Validation\n- Android: 80 numeric assertions passed, Android lint and release compilation passed.\n- Windows: actual Inno Setup EXE built, installed, seven installed-application Qt/math/UI tests passed, and uninstall verified on a Windows runner.\n- Linux: the distributed archive was extracted and installed, seven installed-application Qt/math/UI tests passed, and uninstall verified on Ubuntu 24.04.\n- Android release: non-debuggable package, no permissions, v2 signature and ZIP alignment verified; certificate SHA-256 6f289ade4d7c49f94390c1a791b880d941ad72a86fda9079f216506dea616794.\n- Physical Android device testing and manual desktop visual inspection were not performed for this release.\n\n## Android upgrade warning\nThe October 2026 APK was debug-signed with a different certificate. Uninstall that older debug build before installing this release. The new package remains com.kaotickj.resistorcalculator with versionCode 2. Subsequent updates must retain the new signing identity and increment versionCode.\n\n## Licensing and provenance\nApplication source is MIT, copyright Johnny Watts. PyQt6 and Qt have separate GPL/commercial and LGPL/GPL/commercial licenses. Desktop installers do not redistribute those dependency binaries; they download pinned packages directly from PyPI. See packaging/desktop/THIRD_PARTY_NOTICES.md and PROVENANCE.md.\n\nPlatform build: https://github.com/kaotickj/Resistance-Calculator-for-4-and-5-Band-Color-Codes/actions/runs/42846469297\nSigning verification: https://github.com/kaotickj/Python-Music-Player/actions/runs/42846837375\n")
+          PY
+      - name: Create draft and verify uploaded assets
+        run: |
+          set -euo pipefail
+          if gh release view v3.0.0 >/dev/null 2>&1; then
+            echo 'Release already exists; inspect rather than overwrite.' >&2
+            exit 1
+          fi
+          gh release create v3.0.0 --target "$SOURCE_SHA" --draft --title 'Resistor Color Code Calculator 3.0.0' --notes-file release/RELEASE-NOTES.md release/*
+          gh release view v3.0.0 --json assets,isDraft,targetCommitish > release-state.json
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          state=json.load(open('release-state.json'))
+          assert state['isDraft'] and state['targetCommitish']==os.environ['SOURCE_SHA']
+          actual={a['name']:a for a in state['assets']}
+          expected={p.name:p for p in Path('release').iterdir() if p.is_file()}
+          assert set(actual)==set(expected)
+          for name,p in expected.items():
+              a=actual[name]
+              assert a['size']==p.stat().st_size
+              digest=a.get('digest')
+              if digest: assert digest=='sha256:'+hashlib.sha256(p.read_bytes()).hexdigest()
+          PY
+      - name: Publish verified release
+        run: |
+          gh release edit v3.0.0 --draft=false --latest
+          gh release view v3.0.0 --json url,isDraft,tagName,assets
