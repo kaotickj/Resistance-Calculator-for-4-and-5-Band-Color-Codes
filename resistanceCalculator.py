@@ -1,6 +1,5 @@
 import sys
 import os
-import ctypes
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -17,6 +16,7 @@ from PyQt6.QtWidgets import (
     QFrame,
     QSizePolicy,
     QDialog,
+    QScrollArea,
 )
 from PyQt6.QtGui import QAction, QFont, QIcon
 from PyQt6.QtCore import Qt
@@ -130,49 +130,6 @@ def resource_path(filename):
     return os.path.join(base_path, filename)
 
 
-def set_windows_taskbar_icon(window, icon_path):
-    """Set native Windows taskbar icon when running on Windows."""
-    if sys.platform != "win32":
-        return
-
-    if not os.path.exists(icon_path):
-        return
-
-    try:
-        load_image = ctypes.windll.user32.LoadImageW
-
-        LR_LOADFROMFILE = 0x00000010
-        IMAGE_ICON = 1
-        WM_SETICON = 0x0080
-        ICON_SMALL = 0
-        ICON_BIG = 1
-
-        hicon = load_image(
-            None,
-            icon_path,
-            IMAGE_ICON,
-            0,
-            0,
-            LR_LOADFROMFILE,
-        )
-
-        if not hicon:
-            return
-
-        hwnd = int(window.winId())
-
-        ctypes.windll.user32.SendMessageW(
-            hwnd, WM_SETICON, ICON_SMALL, hicon
-        )
-        ctypes.windll.user32.SendMessageW(
-            hwnd, WM_SETICON, ICON_BIG, hicon
-        )
-
-    except Exception:
-        # QIcon still provides the normal application icon.
-        pass
-
-
 # ============================================================
 # Main window
 # ============================================================
@@ -204,13 +161,15 @@ class ResistorCalculator(QMainWindow):
     def setup_window(self):
         self.setWindowTitle("Resistor Color Code Calculator")
         self.resize(760, 720)
-        self.setMinimumSize(760, 1000)
+        self.setMinimumSize(760, 600)
 
         icon_path = resource_path("icon.ico")
+        if not os.path.exists(icon_path):
+            icon_path = resource_path("icon.png")
 
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
-            set_windows_taskbar_icon(self, icon_path)
+            # Qt owns native icon handles safely on 32- and 64-bit Windows.
 
 
     # --------------------------------------------------------
@@ -225,7 +184,10 @@ class ResistorCalculator(QMainWindow):
         main_layout.setContentsMargins(32, 26, 32, 28)
         main_layout.setSpacing(20)
 
-        self.setCentralWidget(central)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(central)
+        self.setCentralWidget(scroll)
 
         # ----------------------------------------------------
         # Header
@@ -1255,7 +1217,7 @@ class ResistorCalculator(QMainWindow):
 # Application
 # ============================================================
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
 
     app.setApplicationName(
@@ -1269,5 +1231,9 @@ if __name__ == "__main__":
     window = ResistorCalculator()
     window.show()
 
-    sys.exit(app.exec())
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 

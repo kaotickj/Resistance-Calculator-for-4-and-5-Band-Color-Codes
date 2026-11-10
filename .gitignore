@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+stage/
+unpacked/
+*.log
+*.jks
+*.keystore
+# Existing tracked historical build/dist files are retained.
+build/
+dist/
