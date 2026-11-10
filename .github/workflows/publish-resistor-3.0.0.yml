@@ -18,10 +18,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: release-inputs
+          persist-credentials: false
       - name: Verify successful pinned build runs
         run: |
           gh api repos/$GH_REPO/actions/runs/42846469297 > desktop-run.json
-          gh api repos/kaotickj/Python-Music-Player/actions/runs/42846837375 > signing-run.json
+          cp release-inputs/signing-run.json signing-run.json
           python3 - <<'PY'
           import json, os
           d=json.load(open('desktop-run.json')); s=json.load(open('signing-run.json'))
@@ -32,7 +36,7 @@ jobs:
         run: |
           gh api repos/$GH_REPO/actions/artifacts/13779400390/zip > windows.zip
           gh api repos/$GH_REPO/actions/artifacts/13777422786/zip > linux.zip
-          gh api repos/kaotickj/Python-Music-Player/actions/artifacts/13778647093/zip > android.zip
+          cp release-inputs/resistor-android-signed-release.zip android.zip
           printf '%s\n' 'c8d31bab3890a4f53df460cf42f12cb26e32675187f061beaafe73dbf71ae485  windows.zip' '79016fbd452af810a14cf5cbc2900999b3717a29c2cfb522196bc429fb198a2e  linux.zip' 'c8fb0da3bbb034d4d96d6fa35acec7cccd92d2a214c170f37c8e2ade43415c52  android.zip' | sha256sum -c -
       - name: Verify payloads and provenance
         run: |
