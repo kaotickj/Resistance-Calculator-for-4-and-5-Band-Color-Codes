@@ -2,6 +2,8 @@
 
 Development version 3.0.0 supports Android, Windows and Linux, with 4-, 5- and 6-band resistance, tolerance ranges and temperature coefficients.
 
+![Resistor Color Code Calculator desktop interface showing 20.00 Ω with ±1% tolerance](assets/resistor-calculator-v3-desktop.png)
+
 ## Android
 
 The native offline Java application is in [`android/`](android/README.md). It requires Android 7.0 or newer and requests no permissions. See [`android/PROVENANCE.md`](android/PROVENANCE.md) for the recovered source and historical APK checksums.
