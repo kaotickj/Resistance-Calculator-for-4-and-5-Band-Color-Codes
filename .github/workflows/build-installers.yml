@@ -1,0 +1,50 @@
+name: Build resistor release
+on:
+  push:
+    branches: [development]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    name: Android logic, lint and unsigned release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Android SDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Numeric tests
+        run: |
+          mkdir -p "$RUNNER_TEMP/resistor-core-tests"
+          javac -encoding UTF-8 -d "$RUNNER_TEMP/resistor-core-tests" app/src/main/java/com/kaotickj/resistorcalculator/ResistorCore.java tests/CoreTest.java
+          java -cp "$RUNNER_TEMP/resistor-core-tests" CoreTest
+      - name: Lint and compile
+        run: gradle --no-daemon :app:lint :app:assembleRelease
+      - name: Verify and package unsigned APK
+        run: |
+          APK=app/build/outputs/apk/release/app-release-unsigned.apk
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK"
+          mkdir -p release
+          cp "$APK" release/Resistor-Color-Code-3.0.0-android-unsigned.apk
+          printf 'Source commit: %s\nVersion: 3.0.0\nVersion code: 2\nSigning: unsigned, requires authorized release signing\nPhysical-device testing: not performed\n' "$GITHUB_SHA" > release/BUILD-INFO.txt
+          cd release
+          sha256sum *.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resistor-android-unsigned
+          path: android/release/*
+          if-no-files-found: error
+          retention-days: 7
